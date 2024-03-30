@@ -1,0 +1,12 @@
+set linesize 200
+set pagesize 0
+set feedback off
+
+spool E:\res.txt
+	select 'Host copy ' || name || ' c:\sauve' from v$datafile;
+	select 'Host copy ' || member || ' c:\sauve' from v$logfile;
+	select 'Host copy ' || name || ' c:\sauve' from v$controlfile;
+spool off
+shutdown immediate
+@E:\res.txt
+startup pfile='' 

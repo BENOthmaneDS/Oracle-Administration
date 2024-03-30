@@ -1,0 +1,166 @@
+﻿//********************Gérer L'Instance*************************\\
+show user
+disc
+conn sys/admin2020 as sysdba
+
+
+create spfile = ' \ \ ' from pfile = ' \ \ ' ;
+spfile=C:\testSPFILE.ORA          dans fichier pfile
+shutdown immediate;
+startup pfile = '\ \' ;
+show parameter spfile;
+
+alter system enable restricted session;              mode restreint
+Grant restricted session to scott;
+
+shutdown immediate;
+startup mount pfile = ' \ \ ';
+alter database open read only;
+
+//**********************Fichiers De Journalisation *************************\\
+
+desc v$log;
+select GROUP#, MEMEBERS, STATUS from v$log;
+alter database add logfile  group 4 ('c:\member4') size 10m;
+
+alter system switch logfile;             lancer basculement
+
+alter database add logfile member 'c:\member4_1' to group 4;
+
+
+desc v$logfile;           vue des membres
+select GROUP#, MEMEBERS, STATUS from v$logfile;
+
+alter database drop logfile member 'C:\member4_1' ;
+
+
+//********************** Archivage *************************\\
+
+desc v$database;
+select log_mode from v$database;
+
+shutdown immediate;
+
+{Sur pfile
+log_archive_dest='C:\archive1'
+log_archive_duplex_dest='C:\archive2'
+puis commentez db_recovery_file_dest
+créer les deux dossiers
+}
+
+startup pfile = '\ \' ;
+alter database archivelog;       
+alter database open;
+
+alter system switch  
+                              logfile;     pour verifier dans le dossier d'archivage
+
+ {archivage manual}
+alter database archivelog manual;
+select log_mode from v$database;
+alter database open;
+3 fois alter system switch logfile;
+
+{il se bloque donc on ouvre une deuxieme session }
+{surr deuxieme session}
+alter system archive log all;
+
+
+//********************** Control File *************************\\
+
+select name from v$controlfile;
+
+{Ajout de ctrl file Cas de spfile on fait sans arreter}
+alter system set 
+control_files=' \ \ **.ctl',
+' \ \ **.ctl',' \ \ **.ctl',' \ \ **_copie.ctl' scope=spfile;
+
+{dans l'etape precedente on met les fichers ctl qu'on puis qu'on a ajouté apres copier/coller de fichier 
+de ctl }
+
+{Ajout de ctrl file Cas de pfile il faut arreter}
+
+shutdown immediate;
+
+{copier/coller de fichier de ctl
+puis on ajoute les noms de ctrl files sur pfile }
+
+CONTROL_FILES = (/ / /,
+/ / / /)
+
+
+startup
+
+//********************** Tablespaces *************************\\
+
+desc dba_tablespaces;
+select tablespace_name from dba_tablespace;
+
+create tablespace ts1
+datafile 'C:\t1.dbf' size 30m, 'C:\t1_1.dbf size 10m autoextend on next 50K maxsize 20M;
+
+
+create tablespace ts2
+datafile 'C:\t2.dbf' size 30m extent management local uniform size 128K;
+
+alter tablespace ts1 read only;
+
+{ Deplacement tablespace non system couper/coller des datafiles apparetenant au ts1}
+desc dba_data_files; 
+select file_name from dba_data_files;
+
+alter tablespace ts1 offline;
+alter tablespace ts1 rename datafile 'ancien emplacement' to 'nouveau emplacement';
+alter tablespace ts1 online;
+drop tablespace ts1;
+
+{pour tablespace system il faut shutdown immediate, copier/coller dbf, startup mount, alter tablespace rename , alter database open}
+
+
+drop tablespace ts1 INCLUDING CONTENTS AND DATAFILES;
+
+//********************** Tablespace UNDO *************************\\
+
+create undo tablespace tsu datafile 'C:\...' size 10M;
+
+select tablespace_name, contents from dba_tablespaces;
+
+show parameter undo_tablespace;
+show parameter spfile;
+{dans le cas de spfile on fait ca pour change la table undo }
+alter system set undo_tablespace='TSU';
+
+{dans le cas de pfile on fait ca pour change la table undo }
+shutdown immediate;
+modifier la ligne dans fichier pfile ca veut dire supprimer la ligne spfile
+alter system set undo_tablespace='TSU';
+startup pfile='....';
+
+alter system set undo_retention=172800;        retention de deux jours (seconds)
+alter tablespace tsu retention guarantee;
+
+//********************** USERS *************************\\
+
+create user aaron
+IDENTIFIED BY soccer
+default tablespace data
+(default) temporary tablespace temp
+quota 15M on data
+quota 10M on users
+account lock
+password expire;
+
+
+create temporary tablespace temp
+tempfile 'C:\..dbf' size 20M;
+
+
+
+dba_users
+dba_ts_quotas
+
+
+grant create session to aaron;
+revoke create session from aaron;
+
+grant select on scott.dept to aaron;

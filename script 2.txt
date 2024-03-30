@@ -1,0 +1,27 @@
+set linesize 200
+set pagesize 0
+set feedback off
+
+spool E:\res2.txt
+	select 'Alter tablespace ' || tablespace_name || ' Begin backup;' from dba_data_files;
+	select 'HOST copy ' || name || ' C:\SauveChaud' from v$datafile;
+        select 'Alter tablespace ' || tablespace_name || ' End backup;' from dba_data_files;
+spool off
+
+@E:\res2.txt
+Alter database backup controlfile to 'C:\F112.ctl'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

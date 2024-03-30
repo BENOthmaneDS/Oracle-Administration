@@ -1,0 +1,98 @@
+1- Select GROUP#, MEMBERS, STATUS from V$LOG;
+	
+
+2-select log_mode from V$database;
+Non car il est en mode manual
+
+3- alter database add logfile member 'C:\log01b.rdo' to group 1;
+le meme pour les autres groupes.
+
+4- 	Select GROUP#, MEMBERS, STATUS from V$LOG;
+select GROUP#, STATUS, MEMBER from V$LOGFILE;
+
+5-alter database add logfile group 4 'C:\log04a.rdo' size 5m;
+alter database add logfile member 'E:\log04b.rdo' to group 4;
+
+6- Select GROUP#, MEMBERS, STATUS from V$LOG;
+select GROUP#, STATUS, MEMBER from V$LOGFILE;
+
+7- alter database drop logfile group 4;
+
+Select GROUP#, MEMBERS, STATUS from V$LOG;
+select GROUP#, STATUS, MEMBER from V$LOGFILE;
+
+8-
+AVant j'ai switcher le archive mode vers automatique
+shutdown immediate
+startup pfile='...' MOUNT
+alter database archivelog;
+alter database open;
+
+------
+
+alter database add logfile
+group 1 'E:\oracle\product\10.1.0\oradata\orcl\log01a.log' size 11m;
+
+alter database add logfile
+group 2 'E:\oracle\product\10.1.0\oradata\orcl\log02a.log' size 11m;
+
+alter system switch logfile;
+alter system switch logfile;
+
+alter database add logfile
+group 3 'E:\oracle\product\10.1.0\oradata\orcl\log03a.log' size 11m;
+
+select GROUP#, MEMBERS, STATUS, BYTES from V$LOG;
+
+
+
+9-
+
+alter database drop logfile
+group 1;
+
+10-
+
+select GROUP#, MEMBERS, STATUS, BYTES from V$LOG;
+
+
+11-1- 
+Ajouter deux dossier dans orcl Archive1 et Archive2
+
+puis dans pfile
+
+log_archive_dest='E:\oracle\product\10.1.0\oradata\Archive1'
+log_archive_duplex_dest='E:\oracle\product\10.1.0\oradata\Archive2'
+
+11-2-
+
+on fait shutdown et startup mount avec pfile mode archive database open 
+puis 
+
+deux fois
+alter system switch logfile;
+
+
+14- alter system switch logfile;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
